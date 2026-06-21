@@ -71,8 +71,45 @@ def main():
                                   unemp_gap=a["unemp_gap"].round(2).tolist())
         dsge["exog"][scn] = dict(lab_g=b["lab_g"].round(3).tolist())
 
+    # 8) 신규 8개 산업(62+8) — 연평균 지수 + 메타
+    nl = read_sql("select date, new_id, new_name, va_index from latent_new_monthly")
+    nmeta = read_sql("select * from new_industry_meta")
+    nl["y"] = nl["date"].str[:4]
+    nyears = sorted(nl["y"].unique())
+    nser = {}
+    for nid, g in nl.groupby("new_id"):
+        yv = g.sort_values("date").groupby("y")["va_index"].mean()
+        arr = [round(float(v), 1) for v in yv.reindex(nyears).values]
+        if nid == "N6":   # 디지털플랫폼: 온라인쇼핑 시작(2017) 이전 무효
+            arr = [a if int(y) >= 2017 else None for a, y in zip(arr, nyears)]
+        nser[nid] = arr
+    new8 = {"years": nyears, "series": nser,
+            "meta": [{"id": r["new_id"], "name": r["name"], "parent": r["parent_bok36"],
+                      "proxy": r["proxy"], "corr": round(float(r["parent_corr"]), 2),
+                      "mean": round(float(r["mean_growth"]), 3),
+                      "sd": round(float(r["sd_growth"]), 3)} for _, r in nmeta.iterrows()]}
+
+    # 9) 70+8 월별 뷰어 데이터(전체) → data/viewer_data.json (보고서가 fetch)
+    base20 = read_sql("select ind_id, avg(va_level) b from latent_monthly_va where date>='2020-01-01' and date<='2020-12-01' group by ind_id").set_index("ind_id")["b"]
+    vlv = read_sql("select date, ind_id, va_level from latent_monthly_va")
+    vdates = sorted(vlv["date"].unique())
+    vser, vmeta = {}, []
+    dg2 = read_sql("select ind_id, rho from latent_diagnostics").set_index("ind_id")["rho"]
+    for iid, g in vlv.groupby("ind_id"):
+        gg = g.sort_values("date")
+        vser[iid] = [round(float(x / base20[iid] * 100), 1) for x in gg["va_level"].values]
+        vmeta.append({"id": iid, "name": name.get(iid, iid), "group": imap.set_index("ind_id").loc[iid, "sector"],
+                      "rho": round(float(dg2.get(iid, float("nan"))), 2), "new": False})
+    for nid, g in nl.groupby("new_id"):
+        gg = g.sort_values("date")
+        vser[nid] = [round(float(x), 1) for x in gg["va_index"].values]
+        nm_r = nmeta.set_index("new_id").loc[nid]
+        vmeta.append({"id": nid, "name": nm_r["name"], "group": nm_r["group"], "rho": None, "new": True})
+    json.dump({"start": "2000-01", "n": len(vdates), "meta": vmeta, "series": vser},
+              open(os.path.join(REPO, "data", "viewer_data.json"), "w", encoding="utf-8"), ensure_ascii=False)
+
     payload = dict(
-        dates=dates, latent=latent, dsge=dsge,
+        dates=dates, latent=latent, dsge=dsge, new8=new8,
         diag=dict(n=int(len(diag)), rho_mean=round(float(diag["rho"].mean()), 3),
                   recon_max=float(diag["max_recon_err"].max()),
                   hold_rmse=round(float(hold["holdout_rmse"].mean()), 3),

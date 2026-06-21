@@ -163,6 +163,27 @@ code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:13.5px;f
 <h3>4.1 정합성과 검증</h3>
 <p>복원된 월별 잠재치를 다시 분기로 집계하면 입력 분기 부가가치와 일치한다(70개 산업 최대 재구성오차 $\approx 0$). 마지막 8개 분기를 가린 보류표본 검증에서 평활치는 실제 분기 부가가치와 양(+)의 상관을 보여, 월별 지표가 부가가치의 시점 정보를 담고 있음을 확인한다. 자기상관 모수 $\rho$의 평균은 표 상단 지표에 보고된다.</p>
 
+<h3>4.2 신규 8개 산업의 월별 시계열 확보 (62 + 8)</h3>
+<p>본 연구의 70개 산업은 한국고용정보원 기준 <b>기존 62개에 신산업 8개</b>(반도체·이차전지·바이오의약·신재생에너지·인공지능SW·디지털플랫폼·콘텐츠·디지털헬스케어)를 더한 구성이다. 신산업은 표준산업분류에 독립 항목이 없거나 공식 부가가치(분기·연)가 집계되지 않아, 통상의 시점분해를 적용할 모(母)벤치마크가 부족하다. 본 연구는 이를 다음으로 해결한다. <b>① 산업별 전용 월별 프록시</b>—반도체는 광공업생산지수 C26(전자부품·컴퓨터·통신), 이차전지는 C28(전기장비), 바이오의약은 C21(의료용물질·의약품), 신재생에너지는 전기·가스 생산지수, 인공지능SW·콘텐츠는 서비스업생산지수 J62·J59, 디지털헬스케어는 보건 Q86, 디지털플랫폼은 <b>온라인쇼핑 거래액</b>(실질)—을 관측방정식의 신호로 삼는다. <b>② 모산업(BOK-36) 분기 부가가치</b>를 정합성 벤치마크로 두어 수준·공행성을 보정하고, 13개월 중심이동평균으로 계절성을 제거하여 월별 실질 활동(부가가치) 지수를 복원한다. 특히 디지털플랫폼은 생산지수가 없어 <b>거래액(플로) 자료</b>로 대체할 수 있음을 보여, 프레임워크가 비(非)생산지표에도 확장됨을 예시한다.</p>
+<figure>
+<div class="chartbox"><div class="chartt">신규 8개 산업 월별 실질부가가치 지수 (2020=100, 연평균)</div><canvas id="figNew8" height="240"></canvas></div>
+<figcaption><span class="cap-no">그림 6.</span> <b>신규 8개 산업의 복원된 월별 실질부가가치</b>(연평균 표시). 반도체가 2000년 대비 2025년 약 11배로 가장 빠르게 성장하고, 바이오의약·디지털헬스케어가 뒤를 잇는다. 콘텐츠는 2019년 정점 후 하락(영상·오디오 제작 위축), 디지털플랫폼은 온라인쇼핑 통계가 시작된 2017년부터 급성장한다. 표 3은 각 산업의 전용 프록시·모산업 상관·성장 통계다.</figcaption>
+</figure>
+<table>
+<thead><tr><th>신규 산업</th><th>모산업(BOK)</th><th>전용 월별 프록시</th><th class="n">모산업 상관</th><th class="n">월평균 성장%</th></tr></thead>
+<tbody id="new8tbody"></tbody>
+</table>
+<p class="tabcap"><span class="cap-no">표 3.</span> 신규 8개 산업의 전용 프록시와 통계(모산업 상관 = 프록시 분기성장과 모산업 분기 부가가치성장의 상관). 코드 <code>09_new_industries.py</code>로 재현.</p>
+
+<h3>4.3 70 + 8개 산업 월별 시계열 — 직접 확인</h3>
+<p>아래에서 70개 산업과 신규 8개 산업의 복원된 월별 실질부가가치(2020=100, 2000.01~2025.12)를 산업별로 직접 확인할 수 있다.</p>
+<figure>
+<div style="margin:0 0 10px"><label style="font-size:14px;color:var(--mut)">산업 선택&nbsp;</label>
+<select id="viewerSel" style="font-size:14px;padding:4px 8px;max-width:100%"></select></div>
+<div class="chartbox"><canvas id="figViewer" height="240"></canvas></div>
+<figcaption><span class="cap-no">그림 7.</span> <b>산업별 월별 실질부가가치 잠재 시계열 뷰어</b>(2020=100). 드롭다운에서 70개 산업 또는 신규 8개 산업을 선택하면 해당 월별 경로가 표시된다. 데이터는 저장소의 <code>data/viewer_data.json</code>에서 불러온다.</figcaption>
+</figure>
+
 <h2><span class="no">5</span>한계</h2>
 <div class="box warn"><div class="bt">유의점</div>
 <p>① <b>주가-부가가치 매칭</b>: 코스피 산업별 주가지수는 25개 섹터로, 70개 산업 중 54개에만 직접 매칭된다. 나머지는 생산지수에 의존한다. ② <b>70개 분기 벤치마크 부재</b>: 분기 부가가치는 36개까지만 공표되어, 자식 산업 배분은 생산지수 비중에 의존한다(기준연도 가중 근사). ③ <b>외생충격의 축약형 부호</b>: 유가·지정학위험의 축약형 다중효과가 약하거나 부호가 직관과 어긋날 수 있어, 시나리오는 신뢰 가능한 교역·실질금리·노동 채널을 중심으로 설계했다. ④ <b>연쇄가중 실질의 비가법성</b>: 실질부가가치는 성장률 분석에 사용하며 합산하지 않는다. ⑤ 농림어업·공공행정 등 월별 지표가 없는 산업은 추세·외생만으로 평활된다.</p></div>
@@ -264,8 +285,37 @@ function barLabor(){
     plugins:{legend:{position:'bottom',labels:{boxWidth:12}}}}});
 }
 
+function drawNew8(){
+  const n=C.new8; if(!n) return;
+  const dash=[[],[6,3],[],[3,3],[2,3],[8,3,2,3],[5,2],[1,3]];
+  const ds=n.meta.map((m,i)=>({label:m.name,data:n.series[m.id],borderColor:palette[i%palette.length],borderDash:dash[i],borderWidth:1.6,pointRadius:0,spanGaps:false,tension:.2}));
+  new Chart(document.getElementById('figNew8'),{type:'line',data:{labels:n.years,datasets:ds},
+   options:{responsive:true,interaction:{mode:'index',intersect:false},
+    scales:{x:{grid:{display:false},ticks:{maxTicksLimit:9,color:COL.mut}},y:{grid:{color:COL.grid},title:{display:true,text:'지수(2020=100)'}}},
+    plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:10}}}}}});
+  const tb=document.getElementById('new8tbody');
+  if(tb) tb.innerHTML=n.meta.map(m=>`<tr><td>${m.name}</td><td>${m.parent}</td><td>${m.proxy}</td><td class="n">${m.corr.toFixed(2)}</td><td class="n">${m.mean.toFixed(2)}</td></tr>`).join('');
+}
+function initViewer(){
+  fetch('data/viewer_data.json').then(r=>r.json()).then(V=>{
+    const sel=document.getElementById('viewerSel'); if(!sel) return;
+    const groups={}; V.meta.forEach(m=>{(groups[m.group]=groups[m.group]||[]).push(m);});
+    sel.innerHTML=Object.keys(groups).map(g=>`<optgroup label="${g}">`+groups[g].map(m=>`<option value="${m.id}">${m.name}${m.new?' ★신규':''}</option>`).join('')+`</optgroup>`).join('');
+    const labels=Array.from({length:V.n},(_,i)=>{const y=2000+Math.floor(i/12),mo=i%12+1;return mo===1?(''+y):'';});
+    let chart=null;
+    function draw(id){
+      const m=V.meta.find(x=>x.id===id);
+      const data={labels,datasets:[{label:m.name,data:V.series[id],borderColor:m.new?'#9a3b2e':'#185FA5',borderWidth:1.5,pointRadius:0,tension:.15}]};
+      if(chart){chart.data=data;chart.update();}
+      else chart=new Chart(document.getElementById('figViewer'),{type:'line',data,
+        options:{responsive:true,plugins:{legend:{display:false}},
+         scales:{x:{grid:{display:false},ticks:{maxTicksLimit:10,color:COL.mut}},y:{grid:{color:COL.grid},title:{display:true,text:'지수(2020=100)'}}}}});
+    }
+    sel.value='N1'; draw('N1'); sel.addEventListener('change',e=>draw(e.target.value));
+  }).catch(e=>console.error('viewer',e));
+}
 window.addEventListener('DOMContentLoaded',()=>{
-  try{ kpis(); lineLatent(); lineDsge('figDsgeY','Y_gap','산출갭(%)'); lineDsge('figDsgeR','policy_rate','정책금리(%)'); lineFan(); barConn(); barLabor(); }catch(e){ console.error(e); }
+  try{ kpis(); lineLatent(); lineDsge('figDsgeY','Y_gap','산출갭(%)'); lineDsge('figDsgeR','policy_rate','정책금리(%)'); lineFan(); barConn(); barLabor(); drawNew8(); initViewer(); }catch(e){ console.error(e); }
   setTimeout(ready, 400);
 });
 </script>
