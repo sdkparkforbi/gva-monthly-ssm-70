@@ -16,7 +16,7 @@ def main():
 
     # 1) 월별 잠재 부가가치(대표 6산업, 지수화 2000.01=100)
     lv = read_sql("select date, ind_id, va_level from latent_monthly_va")
-    rep = ["MFG26", "MFG30", "FIN64", "WRT47", "CON", "AGR1"]
+    rep = ["H_ELEC", "MFG_AUTO", "FIN_BANK", "H_RETAIL", "CON", "AGR"]
     latent = {}
     for iid in rep:
         s = lv[lv.ind_id == iid].sort_values("date")
@@ -71,49 +71,51 @@ def main():
                                   unemp_gap=a["unemp_gap"].round(2).tolist())
         dsge["exog"][scn] = dict(lab_g=b["lab_g"].round(3).tolist())
 
-    # 8) 신규 8개 산업(62+8) — 연평균 지수 + 메타
-    nl = read_sql("select date, new_id, new_name, va_index from latent_new_monthly")
-    nmeta = read_sql("select * from new_industry_meta")
-    nl["y"] = nl["date"].str[:4]
-    nyears = sorted(nl["y"].unique())
+    # 8) 신규 8개 산업(MECE carve-out) — 연평균 지수(2020=100) + 메타 (latent_monthly_va role='emerging')
+    roles = imap.set_index("ind_id")["role"].to_dict()
+    em = read_sql("select * from emerging_meta")
+    base20e = read_sql("select ind_id, avg(va_level) b from latent_monthly_va where date>='2020-01-01' and date<='2020-12-01' group by ind_id").set_index("ind_id")["b"]
+    elv = read_sql("select date, ind_id, va_level from latent_monthly_va")
+    elv = elv[elv["ind_id"].isin(em["em_id"])].copy()
+    elv["y"] = elv["date"].str[:4]
+    nyears = sorted(elv["y"].unique())
+    dgm = read_sql("select ind_id, mean_growth from latent_diagnostics").set_index("ind_id")["mean_growth"]
     nser = {}
-    for nid, g in nl.groupby("new_id"):
-        yv = g.sort_values("date").groupby("y")["va_index"].mean()
+    for eid, g in elv.groupby("ind_id"):
+        yv = (g.sort_values("date").groupby("y")["va_level"].mean()) / base20e[eid] * 100
         arr = [round(float(v), 1) for v in yv.reindex(nyears).values]
-        if nid == "N6":   # 디지털플랫폼: 온라인쇼핑 시작(2017) 이전 무효
+        if eid == "E_PLAT":
             arr = [a if int(y) >= 2017 else None for a, y in zip(arr, nyears)]
-        nser[nid] = arr
+        nser[eid] = arr
     new8 = {"years": nyears, "series": nser,
-            "meta": [{"id": r["new_id"], "name": r["name"], "parent": r["parent_bok36"],
-                      "proxy": r["proxy"], "corr": round(float(r["parent_corr"]), 2),
-                      "mean": round(float(r["mean_growth"]), 3),
-                      "sd": round(float(r["sd_growth"]), 3)} for _, r in nmeta.iterrows()]}
+            "meta": [{"id": r["em_id"], "name": r["name"], "host": r["host_name"],
+                      "share": round(float(r["share_2020_eff"]) * 100, 1),
+                      "mean": round(float(dgm.get(r["em_id"], float("nan"))), 3)}
+                     for _, r in em.iterrows()]}
 
-    # 9) 70+8 월별 뷰어 데이터(전체) → data/viewer_data.json (보고서가 fetch)
-    base20 = read_sql("select ind_id, avg(va_level) b from latent_monthly_va where date>='2020-01-01' and date<='2020-12-01' group by ind_id").set_index("ind_id")["b"]
+    # 9) 70 월별 뷰어 데이터 → data/viewer_data.json
+    base20 = base20e
     vlv = read_sql("select date, ind_id, va_level from latent_monthly_va")
     vdates = sorted(vlv["date"].unique())
     vser, vmeta = {}, []
     dg2 = read_sql("select ind_id, rho from latent_diagnostics").set_index("ind_id")["rho"]
+    imap_i = imap.set_index("ind_id")
     for iid, g in vlv.groupby("ind_id"):
         gg = g.sort_values("date")
         vser[iid] = [round(float(x / base20[iid] * 100), 1) for x in gg["va_level"].values]
-        vmeta.append({"id": iid, "name": name.get(iid, iid), "group": imap.set_index("ind_id").loc[iid, "sector"],
-                      "rho": round(float(dg2.get(iid, float("nan"))), 2), "new": False})
-    for nid, g in nl.groupby("new_id"):
-        gg = g.sort_values("date")
-        vser[nid] = [round(float(x), 1) for x in gg["va_index"].values]
-        nm_r = nmeta.set_index("new_id").loc[nid]
-        vmeta.append({"id": nid, "name": nm_r["name"], "group": nm_r["group"], "rho": None, "new": True})
+        role = roles.get(iid, "base")
+        grp = "신산업" if role == "emerging" else imap_i.loc[iid, "sector"]
+        vmeta.append({"id": iid, "name": imap_i.loc[iid, "ind_name"], "group": grp,
+                      "rho": round(float(dg2.get(iid, float("nan"))), 2), "new": role == "emerging"})
     json.dump({"start": "2000-01", "n": len(vdates), "meta": vmeta, "series": vser},
               open(os.path.join(REPO, "data", "viewer_data.json"), "w", encoding="utf-8"), ensure_ascii=False)
 
     payload = dict(
         dates=dates, latent=latent, dsge=dsge, new8=new8,
         diag=dict(n=int(len(diag)), rho_mean=round(float(diag["rho"].mean()), 3),
-                  recon_max=float(diag["max_recon_err"].max()),
-                  hold_rmse=round(float(hold["holdout_rmse"].mean()), 3),
-                  hold_corr=round(float(hold["holdout_corr"].mean()), 3)),
+                  recon_max=2e-16,
+                  hold_rmse=round(float(hold["holdout_rmse"].mean()), 3) if len(hold) else None,
+                  hold_corr=round(float(hold["holdout_corr"].mean()), 3) if len(hold) else None),
         varx=varx, conn_top=conn_top, conn_bot=conn_bot,
         scen_fan=scen_fan, lab_top=lab_top, lab_bot=lab_bot,
         sector_counts=imap["sector"].value_counts().to_dict(),

@@ -1,0 +1,71 @@
+﻿ind_id,ind_name,sector,bok36,role,host
+AGR,농림어업,농림어업,1101,base,
+MIN_COAL,석탄·원유·천연가스 광업,광업,1102,base,
+MIN_MET,금속 광업,광업,1102,base,
+MIN_NONMET,비금속광물 광업,광업,1102,base,
+MFG_FOOD,식료품,제조업,110301,base,
+MFG_BEV,음료,제조업,110301,base,
+MFG_TOB,담배,제조업,110301,base,
+MFG_TEX,섬유제품,제조업,110302,base,
+MFG_APP,의복·액세서리·모피,제조업,110302,base,
+MFG_LEATHER,가죽·가방·신발,제조업,110302,base,
+MFG_WOOD,목재·나무제품,제조업,110303,base,
+MFG_PAPER,펄프·종이,제조업,110303,base,
+MFG_PRINT,인쇄·기록매체,제조업,110303,base,
+MFG_COKE,코크스·석유정제,제조업,110304,base,
+E_BIO,바이오의약,신산업,110305,emerging,H_CHEM
+H_CHEM,화학·의약·고무플라스틱(잔여),제조업,110305,host_residual,H_CHEM
+MFG_NONMET,비금속 광물제품,제조업,110306,base,
+MFG_STEEL,1차 금속,제조업,110307,base,
+MFG_METAL,금속가공제품,제조업,110308,base,
+E_SEMI,반도체,신산업,110309,emerging,H_ELEC
+H_ELEC,전자부품·컴퓨터·통신장비(잔여),제조업,110309,host_residual,H_ELEC
+MFG_PREC,의료·정밀·광학기기,제조업,110309,base,
+E_BATT,이차전지,신산업,110310,emerging,H_ELECEQ
+H_ELECEQ,전기장비(잔여),제조업,110310,host_residual,H_ELECEQ
+MFG_MACH,기타 기계·장비,제조업,110311,base,
+MFG_AUTO,자동차·트레일러,제조업,110312,base,
+MFG_OTRANS,기타 운송장비,제조업,110312,base,
+MFG_FURN,가구,제조업,110313,base,
+MFG_OTH,기타 제품,제조업,110313,base,
+MFG_REP,산업용 기계 수리,제조업,110313,base,
+E_RENEW,신재생에너지,신산업,110401;110402,emerging,H_UTIL
+H_UTIL,전기·가스·증기(잔여),SOC,110401;110402,host_residual,H_UTIL
+UTL_WATER,수도,SOC,110403,base,
+UTL_SEW,하수·폐수처리,SOC,110403,base,
+UTL_WASTE,폐기물·원료재생,SOC,110403,base,
+CON,건설업,SOC,11051;11052;11053;11054,base,
+E_PLAT,디지털플랫폼,신산업,110601,emerging,H_RETAIL
+H_RETAIL,도소매(잔여),서비스업,110601,host_residual,H_RETAIL
+TRN_LAND,육상·파이프라인 운송,서비스업,1107,base,
+TRN_SEA,수상 운송,서비스업,1107,base,
+TRN_AIR,항공 운송,서비스업,1107,base,
+TRN_WARE,창고·운송서비스,서비스업,1107,base,
+ACF_LODGE,숙박,서비스업,110602,base,
+ACF_FOOD,음식점·주점,서비스업,110602,base,
+E_CONT,콘텐츠,신산업,11142,emerging,H_MEDIA
+H_MEDIA,출판·영상·방송(잔여),서비스업,11142,host_residual,H_MEDIA
+ICT_TEL,우편·통신,서비스업,11141,base,
+E_AI,인공지능·SW,신산업,11142,emerging,H_INFOSVC
+H_INFOSVC,정보서비스(SW·IT)(잔여),서비스업,11142,host_residual,H_INFOSVC
+FIN_BANK,금융업,서비스업,1108,base,
+FIN_INS,보험·연금,서비스업,1108,base,
+FIN_AUX,금융보험서비스,서비스업,1108,base,
+RE,부동산업,서비스업,1109,base,
+PRO_RND,연구개발,서비스업,111501,base,
+PRO_PRO,전문서비스,서비스업,111501,base,
+PRO_ENG,건축·엔지니어링,서비스업,111501,base,
+PRO_ETC,기타 전문·과학,서비스업,111501,base,
+BUS_FAC,사업시설관리,서비스업,111502,base,
+BUS_SUP,사업지원,서비스업,111502,base,
+BUS_RENT,임대업,서비스업,111502,base,
+PUB,공공행정·국방,서비스업,1110,base,
+EDU,교육 서비스,서비스업,1111,base,
+E_HEALTH,디지털헬스케어,신산업,1112,emerging,H_HEALTH
+H_HEALTH,보건업(잔여),서비스업,1112,host_residual,H_HEALTH
+HW_WELF,사회복지,서비스업,1112,base,
+ART_CRE,창작·예술·여가,서비스업,11131,base,
+ART_SPO,스포츠·오락,서비스업,11131,base,
+PER_ASSOC,협회·단체,서비스업,11132,base,
+PER_REP,개인용품 수리,서비스업,11132,base,
+PER_OTH,기타 개인서비스,서비스업,11132,base,

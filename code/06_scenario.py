@@ -45,39 +45,18 @@ def exog_paths():
 
 
 def weights_2024():
-    """70산업 2024 명목 부가가치 가중치(부모 명목 × 생산비중)."""
-    imap = read_sql("select * from clean_industry_map")
-    nom = read_sql("select quarter, code, value from clean_va_nom")
-    nom24 = nom[nom["quarter"].str.startswith("2024")].groupby("code")["value"].sum()
-    mfg = read_sql("select date,ksic,value from raw_mfg_prod")
-    svc = read_sql("select date,ksic,value from raw_svc_prod")
-    p24 = {}
-    for src, df in [("mfg", mfg), ("svc", svc)]:
-        d = df[df["date"].str.startswith("2024")].groupby("ksic")["value"].mean()
-        for k, v in d.items():
-            p24[(src, k)] = v
-    w = {}
-    for key, grp in imap.groupby("bok36"):
-        codes = key.split(";")
-        tot = float(nom24.reindex(codes).sum())
-        rows = grp.to_dict("records")
-        shares = []
-        for r in rows:
-            pv = p24.get((r["prod_src"], r["ksic"]), np.nan)
-            shares.append(pv if pd.notna(pv) else np.nan)
-        sh = np.array([s if pd.notna(s) else np.nanmean([x for x in shares if pd.notna(x)] or [1]) for s in shares])
-        sh = sh / sh.sum() if sh.sum() > 0 else np.ones(len(rows)) / len(rows)
-        for r, s in zip(rows, sh):
-            w[r["ind_id"]] = tot * s
-    s = pd.Series(w); return (s / s.sum())
+    """70 MECE leaf 가중치 = 2024 평균 실질 부가가치 수준(leaf 합=부모, MECE 정합)."""
+    lv = read_sql("select date, ind_id, va_level from latent_monthly_va")
+    w = lv[lv["date"].str.startswith("2024")].groupby("ind_id")["va_level"].mean()
+    return (w / w.sum())
 
 
 def main():
     # VARX 재추정(점추정 + 잔차공분산)
     Y, ex, inds = v5.load()
     X, Yt, n, ne = v5.design(Y, ex)
-    lam = v5.select_lambda(X, Yt)
-    B = v5.ridge_fit(X, Yt, lam)
+    lam = v5.select_lambda(X, Yt, n)
+    B = v5.ridge_fit(X, Yt, lam, n)
     resid = Yt - X @ B
     Sigma = np.cov(resid.T)
     L = np.linalg.cholesky(Sigma + 1e-8 * np.eye(n))

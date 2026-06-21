@@ -38,7 +38,8 @@ code/
   00_industry_map.py    70개 산업분류 매핑(KSIC↔BOK36↔코스피섹터)
   01_fetch_raw.py / 01b_fetch_fix.py   원자료 수집 → raw_*
   03_clean_build.py     정제·정상성변환 → clean_*
-  04_mf_statespace.py   월별 잠재 부가가치 추출 → latent_*
+  04_mf_statespace.py   월별 잠재 부가가치 추출(기본)
+  10_mece_build.py      MECE 재구조화: 62 base + 8 carve = 70 → latent_*(최종)
   05_varx_estimate.py   빈도주의 VARX → result_varx_*
   06_scenario.py        S1~S5 시나리오·팬차트 → result_scenario_*
   07_report_data.py     웹 보고서용 chart_data.js
@@ -58,7 +59,8 @@ python code/01_fetch_raw.py        # 원자료 수집(API)
 python code/01b_fetch_fix.py       # 서비스생산·분기VA·GPR 보완
 python code/00_industry_map.py     # 70개 산업 매핑
 python code/03_clean_build.py      # 정제·변환
-python code/04_mf_statespace.py    # 혼합주기 상태공간 → 월별 잠재 부가가치
+python code/04_mf_statespace.py    # 혼합주기 상태공간(기본)
+python code/10_mece_build.py       # MECE 62+8=70 분할 → 최종 월별 잠재 부가가치
 python code/05_varx_estimate.py    # VARX
 python code/06_scenario.py         # 시나리오·팬차트
 python code/07_report_data.py      # 보고서 데이터
