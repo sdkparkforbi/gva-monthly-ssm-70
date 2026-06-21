@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>혼합주기 상태공간 모형을 이용한 70개 산업 월별 실질부가가치 추정과 VARX 전망 (2026~2035)</title>
+<meta property="og:type" content="article">
+<meta property="og:title" content="혼합주기 상태공간 × 70개 산업 월별 실질부가가치 — VARX 시나리오 전망">
+<meta property="og:description" content="실질주가가치·산업생산지수를 관측방정식에, 월별 실질부가가치를 잠재상태에 둔 혼합주기 상태공간으로 70개 산업의 월별 부가가치를 복원하고 VARX로 전망한다.">
+<meta property="og:image" content="https://raw.githubusercontent.com/sdkparkforbi/gva-monthly-ssm-70/main/thumb.png">
+<meta property="og:url" content="https://sdkparkforbi.github.io/gva-monthly-ssm-70/">
+<meta name="twitter:card" content="summary_large_image">
+<script>window.MathJax={tex:{inlineMath:[['$','$']],displayMath:[['$$','$$']]},chtml:{scale:0.95}};</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="chart_data.js"></script>
+<style>
+:root{--ink:#1a1a1a;--mut:#5a5a5a;--line:#e3e0d8;--bg:#fbfaf7;--accent:#185FA5;--accent2:#9a3b2e;--box:#f1f4f8;--warn:#faf2e6;--code:#f3f1ea;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Pretendard','Noto Sans KR',-apple-system,'Malgun Gothic',sans-serif;line-height:1.85;font-size:16.5px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:830px;margin:0 auto;padding:48px 22px 96px}
+h1{font-size:24px;line-height:1.44;font-weight:700;margin:0 0 14px;text-align:center}
+.authors{text-align:center;font-size:15.5px;margin:0 0 4px}
+.affil{text-align:center;color:var(--mut);font-size:13px;line-height:1.6;margin:0 0 6px}
+.meta{color:var(--mut);font-size:13px;text-align:center;border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:30px}
+.abs{background:#fff;border:1px solid var(--line);border-radius:10px;padding:18px 22px;margin:0 0 8px}
+.abs .t{font-weight:700;font-size:14px;color:var(--accent);margin-bottom:6px}
+h2{font-size:20px;font-weight:700;margin:46px 0 6px;padding-top:14px;border-top:2px solid var(--ink)}
+h2 .no{color:var(--accent);margin-right:8px}
+h3{font-size:16.5px;font-weight:600;margin:28px 0 8px;color:#222}
+p{margin:14px 0;text-indent:1em}
+.abs p{text-indent:0;margin:8px 0;font-size:15.3px}
+.box p,figcaption,.tabcap,li,.box,.meta,.foot,.eq,.authors,.affil,.kw{text-indent:0}
+.kw{font-size:13.5px;color:var(--mut);margin-top:8px}
+.box{background:var(--box);border:1px solid #dde6f0;border-radius:10px;padding:16px 20px;margin:24px 0}
+.box .bt{font-weight:700;font-size:14px;color:var(--accent);margin-bottom:8px}
+.box.warn{background:var(--warn);border-color:#ecd9b6}.box.warn .bt{color:#9a6a12}
+.box p{margin:9px 0;font-size:15.3px;line-height:1.8}
+.eq{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:16px 0;overflow-x:auto}
+figure{margin:30px 0;padding:0}
+.chartbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 16px 12px}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.twocol{grid-template-columns:1fr}}
+figcaption{font-size:14px;color:var(--mut);margin-top:11px;line-height:1.72}
+figcaption b{color:#333}
+.cap-no{color:var(--accent);font-weight:700}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14px}
+th,td{border-bottom:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#f3f1ea;font-weight:600;font-size:13.2px}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tabcap{font-size:13.5px;color:var(--mut);margin:6px 2px 18px;line-height:1.7}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:13.5px;font-family:Consolas,monospace}
+.refs{font-size:14px;line-height:1.7}.refs li{margin:9px 0}
+.refs a{color:var(--accent);text-decoration:none;word-break:break-all}
+.kpi{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0}
+.kpi div{flex:1;min-width:120px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi .v{font-size:22px;font-weight:700;color:var(--accent)}.kpi .l{font-size:12.5px;color:var(--mut)}
+.foot{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);color:var(--mut);font-size:13px}
+.chartt{font-size:12.5px;color:#444;font-weight:600;text-align:center;margin:2px 0 8px}
+@page{margin:18mm 15mm 20mm 15mm}
+@media print{
+ body{background:#fff;font-size:13.5px}
+ .wrap{max-width:100%;padding:0}
+ figure,table,.box,.eq,.abs{break-inside:avoid}
+ h2,h3{break-after:avoid}
+ h2{margin-top:26px}
+ a{color:#185FA5;text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>혼합주기 상태공간 모형을 이용한 70개 산업 월별 실질부가가치 추정과 VARX 전망 (2026~2035)</h1>
+<p class="authors">이규성<sup>1</sup> · 성봉주<sup>1</sup> · 박대근<sup>1</sup> · 주동헌<sup>2</sup></p>
+<p class="affil"><sup>1</sup> 차의과학대학교 일반대학원 AI헬스케어융합학과 &nbsp;·&nbsp; <sup>2</sup> 한양대학교 경제학과</p>
+<p class="meta">2026-06-21 · 자료: 한국은행 ECOS · 통계청 KOSIS(광업제조업·서비스업 동향, 한국거래소 산업별 주가지수, 장래인구추계) · GPR. 모든 수치는 공개 코드로 재현된다.</p>
+
+<div class="abs">
+<div class="t">초록</div>
+<p>선행연구가 36개 산업의 분기 실질부가가치를 베이지안 VARX로 전망한 것을 이어, 본 연구는 산업 분해를 70개로 확장하고 빈도를 월 단위로 끌어올린다. 핵심은 혼합주기 상태공간 모형이다. 관측방정식은 산업별 실질주가가치(한국거래소 코스피 산업별 주가지수를 소비자물가로 실질화)와 광업·제조업 및 서비스업 산업생산지수, 그리고 월별 외생변수를 지표로 받고, 시스템(상태)방정식은 관측되지 않는 월별 실질부가가치를 잠재변수로 둔다. 분기(연쇄가중 실질, 한국은행 국민계정) 실질부가가치는 잠재 월별 부가가치의 시점집계로 제약되며, 누적기를 증강한 상태공간을 자체 칼만필터로 추정·평활하여 2000년 1월부터 2025년 12월까지 70개 산업의 월별 실질부가가치 312개월 시계열을 복원한다. 복원된 월별 잠재 시계열로 외생변수를 결합한 빈도주의 VARX를 정칙화 추정하고, 이를 노동공급(통계청 장래인구추계 중위·저위·고위)과 대외환경 두 축으로 구성한 다섯 시나리오로 2035년까지 전망한다. 분석 결과 월별 잠재치는 분기 부가가치와 완전히 정합하며, 산업 변동의 약 3분의 2가 산업 간에 전이되고, 생산가능인구 가정과 대외충격에 따라 2035년 총부가가치 경로가 정연한 순서로 분기됨을 확인한다.</p>
+<p class="kw"><b>주제어</b> &nbsp;혼합주기 상태공간, 시점분해, 잠재 부가가치, 실질주가가치, VARX, Diebold–Yılmaz 연결성, 시나리오 전망</p>
+</div>
+
+<h2><span class="no">1</span>서론</h2>
+<p>중장기 산업전망은 보통 연 또는 분기 단위로 이루어진다. 그러나 산업의 실질부가가치는 분기로만 공표되는 반면, 산업의 활동을 비추는 다수의 지표—산업생산지수, 서비스업생산지수, 산업별 주가, 수출입, 고용—는 월 단위로 빠르게 갱신된다. 저빈도의 부가가치와 고빈도의 지표 사이의 간극을 메우면, 분기에 가려진 산업 동학을 월 단위로 관찰하고 더 시의성 있는 전망을 세울 수 있다.</p>
+<p>본 연구는 선행연구(36개 산업·분기·베이지안 VARX)의 후속으로서, 그 논문이 향후 과제로 명시한 <i>“월별 은닉 부가가치 지표를 활용한 70개 산업 확장”</i>을 구현한다. 방법론의 중심은 Mariano와 Murasawa(2003), Schorfheide와 Song(2015)이 제시한 혼합주기 상태공간 모형이다. 관측되지 않는 월별 실질부가가치를 잠재상태로 두고, 실질주가가치를 비롯한 월별 지표를 관측방정식의 신호로 삼아 칼만필터로 추정한다. 추정된 월별 잠재 시계열은 두 가지 용도를 가진다. 첫째, 분기 부가가치를 월로 분해(temporal disaggregation)하여 산업 동학을 세밀하게 드러낸다. 둘째, 그 자체가 70개 산업 월별 VARX의 입력이 되어 시나리오 전망의 토대가 된다.</p>
+<p>선행연구와의 차별점은 세 가지다. (i) 산업 분해를 36개에서 70개(한국표준산업분류 중분류 기준)로 확장한다. (ii) 분기에서 월로 빈도를 높이되, 단순 보간이 아니라 실질주가가치와 생산지수가 담은 정보로 월별 잠재 부가가치를 식별한다. (iii) 추정 철학과 도구를 달리하여—선행연구가 베이지안 동적요인·BVARX였다면—본 연구는 자체 구현한 혼합주기 칼만필터와 빈도주의(정칙화) VARX를 사용하고, 산재한 CSV 대신 단일 관계형 데이터베이스(SQLite)로 자료를 관리한다.</p>
+
+<h2><span class="no">2</span>방법론</h2>
+<h3>2.1 혼합주기 상태공간 모형</h3>
+<p>산업 $i$의 관측되지 않는 월별 실질부가가치의 로그수준을 $m_{i,t}$로 둔다. 이를 잠재상태로 하고, 회귀항과 정상 자기상관 오차로 분해한다.</p>
+<div class="eq">$$ m_{i,t} = \beta_i' X_{i,t} + u_{i,t}, \qquad u_{i,t} = \rho_i\, u_{i,t-1} + \eta_{i,t}, \quad \eta_{i,t}\sim N(0,\sigma_i^2) $$</div>
+<p>여기서 $X_{i,t}$는 <b>관측방정식의 지표</b>—실질주가가치 $s_{i,t}$(코스피 산업별 주가지수$\div$CPI, 로그표준화), 산업생산지수 $q_{i,t}$(로그표준화), 월별 외생변수 $x_t$(유가·교역·실질금리·실질환율·지정학위험·취업자 증가율)—와 상수·추세로 구성된다. 실질주가가치와 생산지수는 부가가치의 동시적 신호로 들어가, 잠재 월별 부가가치의 월내 움직임을 식별한다.</p>
+<p><b>저빈도 제약(시점집계).</b> 분기 실질부가가치(로그) $Y^Q_{i,\tau}$는 분기를 구성하는 3개월 잠재치의 평균으로 관측된다.</p>
+<div class="eq">$$ Y^{Q}_{i,\tau} \;=\; \tfrac{1}{3}\big(m_{i,\,3\tau-2}+m_{i,\,3\tau-1}+m_{i,\,3\tau}\big) $$</div>
+<p>이 제약을 누적기(Harvey cumulator)로 상태벡터에 증강하면 모형은 선형·가우시안 상태공간이 되고, 자체 구현한 칼만필터로 우도를 평가($\rho_i$는 프로파일 격자탐색)하며, 칼만 평활로 월별 잠재 $\hat m_{i,t}$와 그 분포를 얻는다. 닫힌형 해는 Chow–Lin·Litterman 시점분해의 일반화이며, 분기 벤치마크를 정확히 보존한다.</p>
+<p><b>70개로의 배분.</b> 한국은행 국민계정은 36개 산업까지 분기 부가가치를 제공하므로, 각 분기 부모 부가가치를 자식(70개 중분류)의 산업생산지수 비중으로 배분하여 자식 분기 벤치마크를 만들고, 위 상태공간으로 월로 분해한다. 따라서 70개 월별 잠재치는 36개 부모의 분기 부가가치와 정합한다.</p>
+
+<h3>2.2 빈도주의 VARX</h3>
+<p>추출한 70개 산업의 월별 실질부가가치 성장률 $y_t$($=100\,\Delta \hat m_{i,t}$)에 외생변수 $x_t$를 결합한 VARX를 추정한다.</p>
+<div class="eq">$$ y_t = c + \sum_{l=1}^{p} B_l\, y_{t-l} + \sum_{s=0}^{q} \Gamma_s\, x_{t-s} + u_t, \qquad u_t \sim N(0,\Sigma) $$</div>
+<p>70차원·시차 $p{=}2$에서 모수는 표본을 크게 웃돈다. 선행연구가 미네소타 사전분포로 축소했다면, 본 연구는 빈도주의 릿지로 내생 동학 계수를 축소하되(절편·외생블록은 비축소), 축소강도 $\lambda$를 보류표본 예측오차로 선택한다. 추정 후 동반행렬 고유값으로 안정성을 점검하고, 일반화 예측오차분산분해(Pesaran–Shin)로 Diebold–Yılmaz 연결성을, 외생충격의 누적 동태승수로 전달경로를 계산한다.</p>
+
+<h2><span class="no">3</span>데이터</h2>
+<p>모든 변수는 한국은행과 통계청에서 입수한다(유가만 FRED). 자료는 단일 SQLite 데이터베이스에 <code>raw_*</code>(원자료)·<code>clean_*</code>(정제)·<code>latent_*</code>(잠재)·<code>result_*</code>(결과) 계층으로 적재된다.</p>
+<table>
+<thead><tr><th>역할</th><th>변수</th><th>출처 · 통계표</th><th>빈도</th></tr></thead>
+<tbody>
+<tr><td>관측 지표(헤드라인)</td><td>실질주가가치 = 코스피 산업별 주가지수 ÷ CPI</td><td>KOSIS 한국거래소 DT_343_2010_S0190 / 한국은행 901Y009</td><td class="n">월</td></tr>
+<tr><td>관측 지표</td><td>광업·제조업 산업생산지수(KSIC)</td><td>KOSIS 광업제조업동향 DT_1F02001</td><td class="n">월</td></tr>
+<tr><td>관측 지표</td><td>서비스업생산지수(불변, KSIC)</td><td>KOSIS 서비스업동향 DT_1KC2020</td><td class="n">월</td></tr>
+<tr><td>저빈도 제약</td><td>36개 산업 분기 실질·명목 부가가치</td><td>한국은행 국민계정 200Y104 / 200Y103</td><td class="n">분기</td></tr>
+<tr><td>외생</td><td>유가(Brent)·교역량·실질금리·실질환율·통화·취업자</td><td>FRED MCOILBRENTEU · 한국은행 403Y/721Y001/731Y006/901Y009/902Y008/901Y027</td><td class="n">월</td></tr>
+<tr><td>외생(정성)</td><td>지정학위험지수(GPR)</td><td>Caldara·Iacoviello</td><td class="n">월</td></tr>
+<tr><td>노동공급</td><td>생산가능인구 추계(중위·저위·고위)</td><td>통계청 장래인구추계</td><td class="n">연</td></tr>
+</tbody></table>
+<p class="tabcap"><b>표 1.</b> 자료 출처. 70개 산업은 한국표준산업분류 10차 중분류(농림어업 2 · 광업 3 · 제조 25 · 사회간접자본 5 · 서비스 35)로 구성하며, 각 산업을 한국은행 36개 부가가치 부모와 코스피 산업별 주가지수 섹터(54개 산업 매칭)에 연결한다.</p>
+
+<h2><span class="no">4</span>결과</h2>
+<div class="kpi" id="kpi"></div>
+
+<figure>
+<div class="chartbox"><div class="chartt">대표 6개 산업의 월별 실질부가가치 잠재치 (2000.01=100)</div>
+<canvas id="figLatent" height="220"></canvas></div>
+<figcaption><span class="cap-no">그림 1.</span> 혼합주기 상태공간으로 복원한 <b>월별 실질부가가치 잠재 시계열</b>. 분기 부가가치만으로는 보이지 않던 산업별 월 단위 동학—전자·자동차의 경기순환, 건설의 부진, 금융·소매의 추세—이 드러난다. 모든 산업의 월별 잠재치는 분기 부가가치로 정확히 집계된다(재구성오차 $\approx 0$).</figcaption>
+</figure>
+
+<figure>
+<div class="chartbox"><div class="chartt">시나리오별 총 실질부가가치 경로 (2025.12=100)</div>
+<canvas id="figFan" height="230"></canvas></div>
+<figcaption><span class="cap-no">그림 2.</span> 다섯 시나리오의 <b>총 실질부가가치 전망</b>과 S1 기준 90% 신뢰구간(몬테카를로 400회). 노동공급(중위·저위·고위)과 대외환경으로 경로가 분기한다: 기술도약(S4) &gt; 제약완화(S3) &gt; 기준(S1) &gt; 지정학위기(S5) &gt; 제약+위기(S2). 시나리오 평균 격차는 확률적 불확실성 대비 작아, 일시적 대외충격보다 노동공급의 지속적 차이가 더 항구적인 수준 격차를 만든다.</figcaption>
+</figure>
+
+<figure class="twocol">
+<div><div class="chartbox"><div class="chartt">순(NET) 연결성 상·하위 산업</div><canvas id="figConn" height="300"></canvas></div></div>
+<div><div class="chartbox"><div class="chartt">노동효과(S3−S2) 민감 상위 산업, 2035 누적(%)</div><canvas id="figLabor" height="300"></canvas></div></div>
+</figure>
+<figcaption style="margin-top:-12px"><span class="cap-no">그림 3·4.</span> (좌) Diebold–Yılmaz <b>순 연결성</b>—양(+)이면 다른 산업으로 충격을 전이하는 발신 산업. (우) 고위·저위 인구 시나리오의 2035년 누적 부가가치 격차로 측정한 <b>노동공급 민감도</b>. 자동차·전자·광업 등 자본·수출 집약 산업이 노동공급 가정에 민감하게 반응한다.</figcaption>
+
+<h3>4.1 정합성과 검증</h3>
+<p>복원된 월별 잠재치를 다시 분기로 집계하면 입력 분기 부가가치와 일치한다(70개 산업 최대 재구성오차 $\approx 0$). 마지막 8개 분기를 가린 보류표본 검증에서 평활치는 실제 분기 부가가치와 양(+)의 상관을 보여, 월별 지표가 부가가치의 시점 정보를 담고 있음을 확인한다. 자기상관 모수 $\rho$의 평균은 표 상단 지표에 보고된다.</p>
+
+<h2><span class="no">5</span>한계</h2>
+<div class="box warn"><div class="bt">유의점</div>
+<p>① <b>주가-부가가치 매칭</b>: 코스피 산업별 주가지수는 25개 섹터로, 70개 산업 중 54개에만 직접 매칭된다. 나머지는 생산지수에 의존한다. ② <b>70개 분기 벤치마크 부재</b>: 분기 부가가치는 36개까지만 공표되어, 자식 산업 배분은 생산지수 비중에 의존한다(기준연도 가중 근사). ③ <b>외생충격의 축약형 부호</b>: 유가·지정학위험의 축약형 다중효과가 약하거나 부호가 직관과 어긋날 수 있어, 시나리오는 신뢰 가능한 교역·실질금리·노동 채널을 중심으로 설계했다. ④ <b>연쇄가중 실질의 비가법성</b>: 실질부가가치는 성장률 분석에 사용하며 합산하지 않는다. ⑤ 농림어업·공공행정 등 월별 지표가 없는 산업은 추세·외생만으로 평활된다.</p></div>
+
+<h2><span class="no">6</span>참고문헌</h2>
+<ul class="refs">
+<li>Mariano, R. S., &amp; Murasawa, Y. (2003). A new coincident index of business cycles based on monthly and quarterly series. <i>Journal of Applied Econometrics</i>, 18(4), 427–443.</li>
+<li>Schorfheide, F., &amp; Song, D. (2015). Real-time forecasting with a mixed-frequency VAR. <i>Journal of Business &amp; Economic Statistics</i>, 33(3), 366–380.</li>
+<li>Chow, G. C., &amp; Lin, A. (1971). Best linear unbiased interpolation, distribution, and extrapolation of time series by related series. <i>Review of Economics and Statistics</i>, 53(4), 372–375.</li>
+<li>Proietti, T. (2006). Temporal disaggregation by state space methods. <i>The Econometrics Journal</i>, 9(3), 357–372.</li>
+<li>Harvey, A. C. (1989). <i>Forecasting, Structural Time Series Models and the Kalman Filter</i>. Cambridge University Press.</li>
+<li>Diebold, F. X., &amp; Yılmaz, K. (2014). On the network topology of variance decompositions. <i>Journal of Econometrics</i>, 182(1), 119–134.</li>
+<li>Caldara, D., &amp; Iacoviello, M. (2022). Measuring geopolitical risk. <i>American Economic Review</i>, 112(4), 1194–1225.</li>
+<li>이규성·성봉주·박대근·주동헌 (2026). 시나리오별 경제성장 및 산업별 실질부가가치 전망(2025~2035). 선행연구. <a href="https://sdkparkforbi.github.io/gva-scenario-2025-2035/">gva-scenario-2025-2035</a>.</li>
+</ul>
+
+<div class="foot">코드·데이터: <a href="https://github.com/sdkparkforbi/gva-monthly-ssm-70">github.com/sdkparkforbi/gva-monthly-ssm-70</a> (<code>/code</code> 노트북·스크립트, <code>/db</code> SQLite). 본 문서의 모든 수치는 저장소의 코드로 재현된다. 정식 논문 집필 전 팀 내부 공유용 초안.</div>
+</div>
+
+<script>
+const C = window.CHART || {};
+const COL = {ink:'#1a1a1a',acc:'#185FA5',acc2:'#9a3b2e',grid:'#ececec',mut:'#888'};
+const palette = ['#185FA5','#9a3b2e','#2e7d4f','#b8860b','#6a4c93','#0e7c86'];
+Chart.defaults.font.family = "'Pretendard','Noto Sans KR',sans-serif";
+Chart.defaults.font.size = 11;
+function ready(){ window.__chartsReady = true; }
+
+function kpis(){
+  const d=C.diag||{}, v=C.varx||{};
+  const items=[
+    ['70','산업(KSIC 중분류)'],
+    ['312','개월 (2000.01–2025.12)'],
+    [(v.mean_R2!=null? (v.mean_R2*100).toFixed(0):'–')+'%','VARX 평균 R²'],
+    [(v.total_connectedness!=null? v.total_connectedness.toFixed(0):'–')+'%','총연결성(TCI)'],
+    [(d.rho_mean!=null?d.rho_mean.toFixed(2):'–'),'평균 ρ'],
+    [(v.max_eig!=null?v.max_eig.toFixed(2):'–'),'max|eig| (<1 안정)'],
+  ];
+  document.getElementById('kpi').innerHTML = items.map(i=>`<div><div class="v">${i[0]}</div><div class="l">${i[1]}</div></div>`).join('');
+}
+
+function lineLatent(){
+  const labels=(C.dates||[]).map(d=>d.slice(0,7));
+  const ds=Object.entries(C.latent||{}).map(([k,v],i)=>({label:k,data:v,borderColor:palette[i%palette.length],borderWidth:1.4,pointRadius:0,tension:.15}));
+  new Chart(document.getElementById('figLatent'),{type:'line',data:{labels,datasets:ds},
+   options:{responsive:true,interaction:{mode:'index',intersect:false},
+    scales:{x:{ticks:{maxTicksLimit:10,color:COL.mut},grid:{display:false}},y:{grid:{color:COL.grid}}},
+    plugins:{legend:{position:'bottom',labels:{boxWidth:14}}}}});
+}
+
+function lineFan(){
+  const f=C.scen_fan||{}; const s1=f.S1||{year:[]};
+  const labels=s1.year||[];
+  const names={S1:'S1 기준',S2:'S2 제약+위기',S3:'S3 제약완화',S4:'S4 기술도약',S5:'S5 지정학'};
+  const ds=[];
+  // S1 band
+  if(s1.p95&&s1.p5){
+    ds.push({label:'S1 90% 상',data:s1.p95,borderColor:'rgba(24,95,165,0)',backgroundColor:'rgba(24,95,165,.10)',pointRadius:0,fill:'+1'});
+    ds.push({label:'S1 90% 하',data:s1.p5,borderColor:'rgba(24,95,165,0)',backgroundColor:'rgba(24,95,165,.10)',pointRadius:0,fill:false});
+  }
+  ['S1','S2','S3','S4','S5'].forEach((k,i)=>{ if(f[k]) ds.push({label:names[k],data:f[k].point,borderColor:palette[i%palette.length],borderWidth:1.8,pointRadius:0,tension:.15}); });
+  new Chart(document.getElementById('figFan'),{type:'line',data:{labels,datasets:ds},
+   options:{responsive:true,interaction:{mode:'index',intersect:false},
+    scales:{x:{grid:{display:false},ticks:{color:COL.mut}},y:{grid:{color:COL.grid},title:{display:true,text:'지수 (2025.12=100)'}}},
+    plugins:{legend:{position:'bottom',labels:{boxWidth:14,filter:i=>!i.text.includes('90%')}}}}});
+}
+
+function barConn(){
+  const top=(C.conn_top||[]).slice(0,6), bot=(C.conn_bot||[]).slice(-4);
+  const rows=[...top,...bot];
+  new Chart(document.getElementById('figConn'),{type:'bar',
+   data:{labels:rows.map(r=>r.name),datasets:[{label:'NET',data:rows.map(r=>r.NET),
+     backgroundColor:rows.map(r=>r.NET>=0?'#185FA5':'#9a3b2e')}]},
+   options:{indexAxis:'y',responsive:true,
+    scales:{x:{grid:{color:COL.grid},title:{display:true,text:'순 연결성(%)'}},y:{grid:{display:false}}},
+    plugins:{legend:{display:false}}}});
+}
+
+function barLabor(){
+  const rows=(C.lab_top||[]).slice(0,8);
+  new Chart(document.getElementById('figLabor'),{type:'bar',
+   data:{labels:rows.map(r=>r.name),datasets:[
+     {label:'S3 고위',data:rows.map(r=>r.S3),backgroundColor:'#2e7d4f'},
+     {label:'S2 저위',data:rows.map(r=>r.S2),backgroundColor:'#b8860b'}]},
+   options:{indexAxis:'y',responsive:true,
+    scales:{x:{grid:{color:COL.grid},title:{display:true,text:'2035 누적 부가가치(%)'}},y:{grid:{display:false}}},
+    plugins:{legend:{position:'bottom',labels:{boxWidth:12}}}}});
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  try{ kpis(); lineLatent(); lineFan(); barConn(); barLabor(); }catch(e){ console.error(e); }
+  setTimeout(ready, 400);
+});
+</script>
+</body>
+</html>

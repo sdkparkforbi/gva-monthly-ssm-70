@@ -1,0 +1,8 @@
+numpy
+pandas
+scipy
+statsmodels
+requests
+xlrd>=2.0.1
+openpyxl
+playwright

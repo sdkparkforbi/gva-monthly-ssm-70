@@ -1,0 +1,6 @@
+API_KEY_BOK.txt
+API_KEY_KOSIS.txt
+__pycache__/
+*.pyc
+data/_*.json
+.DS_Store
