@@ -21,47 +21,25 @@ FUT = pd.date_range("2026-01-01", periods=HMON, freq="MS")
 NDRAW = 400
 np.random.seed(7)
 
-# 시나리오 노동(WAP) 추계 사용 라벨
-LAB = {"S1": "중위", "S2": "저위", "S3": "고위", "S4": "중위", "S5": "중위"}
-# 대외 충격(연 %p 가산, 36개월 선형 감쇠 → 일시적). 신뢰 채널 trd_g(+)·d_rrate(−)·rfx_g 중심.
-SHOCK = {
- "S1": {},
- "S2": {"trd_g": -4.0, "d_rrate": +0.8, "rfx_g": +6.0},        # 제약+대외위기
- "S3": {},                                                     # 제약완화(노동 고위)
- "S4": {"trd_g": +3.0, "d_rrate": -0.3},                       # 기술도약(교역 확대)
- "S5": {"trd_g": -3.5, "d_rrate": +1.0, "gpr_l": +25.0},       # 지정학 위기
-}
-
-
-def lab_annual(scn):
-    """시나리오별 연 취업자증가율(%) 경로 (WAP성장 + 참여율추세)."""
-    w = pd.read_csv(os.path.join(DATA, "wap_projection.csv"))
-    col = {"중위": "중위_천명", "저위": "저위_천명", "고위": "고위_천명"}[LAB[scn]]
-    s = w.set_index("연도")[col].dropna()
-    g = (s / s.shift(1) - 1) * 100
-    out = {}
-    for yi, y in enumerate(range(2026, 2036)):
-        wapg = g.get(y, g.dropna().iloc[-1])         # 추계 종료후 마지막값 유지
-        partic = max(0.9 - 0.09 * yi, 0.0)           # 참여율 추세(점감)
-        out[y] = float(wapg + partic)
-    return out
+SCN = ["S1", "S2", "S3", "S4", "S5"]
 
 
 def exog_paths():
-    base = read_sql("select * from clean_exog_m")[EXOG].mean().to_dict()  # 역사적 평균=기준
+    """거시 블록(DSGE, 08) 분기 외생경로를 월별 VARX 외생으로 연결.
+    DSGE 분기 성장/변화율 → 월별 = 분기값/3 (3개월 합 = 분기값). GPR은 역사적 기준값."""
+    base = read_sql("select * from clean_exog_m")[EXOG].mean().to_dict()
+    dz = read_sql("select * from result_dsge_exog")        # scenario, quarter, oil_g..lab_g
     paths = {}
-    for scn in SHOCK:
-        la = lab_annual(scn)
+    for scn in SCN:
+        d = dz[dz.scenario == scn].reset_index(drop=True)  # 40분기
         X = np.zeros((HMON, len(EXOG)))
-        for t, d in enumerate(FUT):
-            decay = max(1 - t / 36.0, 0.0)        # 36개월 선형 감쇠(일시적 충격)
+        for t in range(HMON):
+            q = min(t // 3, len(d) - 1)
             for j, v in enumerate(EXOG):
-                x = base[v]
-                if v == "lab_g":
-                    x = la[d.year] / 12.0            # 연→월
-                elif v in SHOCK[scn]:
-                    x = base[v] + SHOCK[scn][v] * decay / 12.0
-                X[t, j] = x
+                if v in d.columns:
+                    X[t, j] = float(d.loc[q, v]) / 3.0     # 분기→월
+                else:                                       # gpr_l: DSGE 미산출 → 기준값
+                    X[t, j] = base.get(v, 0.0)
         paths[scn] = X
     return paths, list(EXOG)
 
@@ -129,7 +107,7 @@ def main():
 
     fan_rows = []; ind_rows = []
     aggfan = {}
-    for scn in SHOCK:
+    for scn in SCN:
         pt = simulate(scn, draws=0)
         agg_pt = (pt * w).sum(axis=1)
         # 산업별 2035 누적(기준 마지막관측월=100)
@@ -163,9 +141,9 @@ def main():
     summary = {scn: {"2035_point": float(fan[(fan.scenario == scn)].iloc[-1]["point"]),
                      "2035_p5": float(fan[(fan.scenario == scn)].iloc[-1]["p5"]),
                      "2035_p95": float(fan[(fan.scenario == scn)].iloc[-1]["p95"])}
-               for scn in SHOCK}
+               for scn in SCN}
     print("시나리오 2035 총부가가치 지수(2025.12=100):")
-    for scn in SHOCK:
+    for scn in SCN:
         s = summary[scn]
         print(f"  {scn}: {s['2035_point']:.1f}  [{s['2035_p5']:.1f}, {s['2035_p95']:.1f}]")
     top = piv.sort_values("labor_effect_S3_S2", ascending=False)

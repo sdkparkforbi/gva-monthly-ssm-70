@@ -58,8 +58,21 @@ def main():
     # 6) 외생 동태승수(가중평균 부호)
     mult = read_sql("select * from result_varx_multipliers")
 
+    # 7) 거시 블록(DSGE) 경로
+    dm = read_sql("select * from result_dsge_macro")
+    de = read_sql("select * from result_dsge_exog")
+    dsge = {"quarters": sorted(dm[dm.scenario == "S1"]["quarter"].tolist()), "macro": {}, "exog": {}}
+    for scn in ["S1", "S2", "S3", "S4", "S5"]:
+        a = dm[dm.scenario == scn].sort_values("quarter")
+        b = de[de.scenario == scn].sort_values("quarter")
+        dsge["macro"][scn] = dict(Y_gap=a["Y_gap"].round(2).tolist(),
+                                  inflation=a["inflation"].round(2).tolist(),
+                                  policy_rate=a["policy_rate"].round(2).tolist(),
+                                  unemp_gap=a["unemp_gap"].round(2).tolist())
+        dsge["exog"][scn] = dict(lab_g=b["lab_g"].round(3).tolist())
+
     payload = dict(
-        dates=dates, latent=latent,
+        dates=dates, latent=latent, dsge=dsge,
         diag=dict(n=int(len(diag)), rho_mean=round(float(diag["rho"].mean()), 3),
                   recon_max=float(diag["max_recon_err"].max()),
                   hold_rmse=round(float(hold["holdout_rmse"].mean()), 3),

@@ -102,6 +102,9 @@ code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:13.5px;f
 <div class="eq">$$ y_t = c + \sum_{l=1}^{p} B_l\, y_{t-l} + \sum_{s=0}^{q} \Gamma_s\, x_{t-s} + u_t, \qquad u_t \sim N(0,\Sigma) $$</div>
 <p>70차원·시차 $p{=}2$에서 모수는 표본을 크게 웃돈다. 선행연구가 미네소타 사전분포로 축소했다면, 본 연구는 빈도주의 릿지로 내생 동학 계수를 축소하되(절편·외생블록은 비축소), 축소강도 $\lambda$를 보류표본 예측오차로 선택한다. 추정 후 동반행렬 고유값으로 안정성을 점검하고, 일반화 예측오차분산분해(Pesaran–Shin)로 Diebold–Yılmaz 연결성을, 외생충격의 누적 동태승수로 전달경로를 계산한다.</p>
 
+<h3>2.3 거시 블록(DSGE) — 외생경로 생성</h3>
+<p>VARX의 외생 입력은 선행연구의 거시 블록을 이식하여 생성한다. 한국은행 BOKDPM을 옮긴 준구조 뉴케인지언 gap 모형으로, 전향적 IS곡선·하이브리드 필립스곡선·테일러준칙·UIP 환율식·오쿤 실업식을 Fair–Taylor(Gauss–Seidel 시간반복)로 결정론적으로 푼다. 정상상태는 중립실질금리 1.5%·인플레목표 2.0%(정책금리 3.5%)이며, 시나리오 충격(세계수요·유가·무역비용·국내수요·인구추계)을 받아 <b>2026Q1~2035Q4의 40분기(10년)</b> 거시 경로—산출갭·인플레이션·정책금리·실질금리·실질환율갭·실업갭—와 산업모형에 넣는 외생 5종(유가·교역·실질금리변화·실질환율·취업자 증가율)을 산출한다. 노동은 통계청 장래인구추계의 노동력증가(중위·저위·고위)에 참가율 추세와 오쿤 실업갭 조정을 더해 구한다. 이 분기 외생경로를 월로 변환(분기값/3)하여 70개 산업 월별 VARX의 시나리오 외생 입력으로 연결한다.</p>
+
 <h2><span class="no">3</span>데이터</h2>
 <p>모든 변수는 한국은행과 통계청에서 입수한다(유가만 FRED). 자료는 단일 SQLite 데이터베이스에 <code>raw_*</code>(원자료)·<code>clean_*</code>(정제)·<code>latent_*</code>(잠재)·<code>result_*</code>(결과) 계층으로 적재된다.</p>
 <table>
@@ -126,17 +129,23 @@ code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:13.5px;f
 <figcaption><span class="cap-no">그림 1.</span> 혼합주기 상태공간으로 복원한 <b>월별 실질부가가치 잠재 시계열</b>. 분기 부가가치만으로는 보이지 않던 산업별 월 단위 동학—전자·자동차의 경기순환, 건설의 부진, 금융·소매의 추세—이 드러난다. 모든 산업의 월별 잠재치는 분기 부가가치로 정확히 집계된다(재구성오차 $\approx 0$).</figcaption>
 </figure>
 
+<figure class="twocol">
+<div><div class="chartbox"><div class="chartt">DSGE 산출갭 (%, 2026~2035)</div><canvas id="figDsgeY" height="260"></canvas></div></div>
+<div><div class="chartbox"><div class="chartt">DSGE 정책금리 (%, 2026~2035)</div><canvas id="figDsgeR" height="260"></canvas></div></div>
+</figure>
+<figcaption style="margin-top:-12px"><span class="cap-no">그림 2.</span> 거시 블록(<b>DSGE, BOKDPM 포트</b>)의 10년 경로. 기준(S1)은 정상상태(산출갭 0·정책금리 3.5%)로 평탄하고, 제약+위기(S2)는 2026년 산출갭 −1.5%까지 하락 후 금리 인하를 거쳐 2030년경 정상상태로 복귀한다. 지정학(S5)은 유가 공급충격으로 산출갭이 음(−)으로, 기술도약(S4)은 양(+)으로 벌어진다. 경기 성분은 모두 수렴하며 <b>항구적 차이는 노동공급(인구가정)</b>에만 남는다. 이 분기 경로가 월별 VARX의 외생 입력을 구동한다.</figcaption>
+
 <figure>
 <div class="chartbox"><div class="chartt">시나리오별 총 실질부가가치 경로 (2025.12=100)</div>
 <canvas id="figFan" height="230"></canvas></div>
-<figcaption><span class="cap-no">그림 2.</span> 다섯 시나리오의 <b>총 실질부가가치 전망</b>과 S1 기준 90% 신뢰구간(몬테카를로 400회). 노동공급(중위·저위·고위)과 대외환경으로 경로가 분기한다: 기술도약(S4) &gt; 제약완화(S3) &gt; 기준(S1) &gt; 지정학위기(S5) &gt; 제약+위기(S2). 시나리오 평균 격차는 확률적 불확실성 대비 작아, 일시적 대외충격보다 노동공급의 지속적 차이가 더 항구적인 수준 격차를 만든다.</figcaption>
+<figcaption><span class="cap-no">그림 3.</span> DSGE 외생경로로 구동한 다섯 시나리오의 <b>총 실질부가가치 전망</b>과 S1 기준 90% 신뢰구간(몬테카를로 400회). 2035년 지수(2025.12=100)는 기술도약(S4) 148.3이 가장 높고 제약+위기(S2) 145.0이 가장 낮다. 시나리오 평균 격차는 확률적 불확실성(±15pt) 대비 작아, 일시적 대외충격보다 노동공급의 지속적 차이가 더 항구적인 수준 격차를 만든다. (유가 등 일부 외생의 축약형 산업 전달이 약해 S5의 산업 총계는 거시 산출갭만큼 음으로 벌어지지 않는다 — §5 참조.)</figcaption>
 </figure>
 
 <figure class="twocol">
 <div><div class="chartbox"><div class="chartt">순(NET) 연결성 상·하위 산업</div><canvas id="figConn" height="300"></canvas></div></div>
 <div><div class="chartbox"><div class="chartt">노동효과(S3−S2) 민감 상위 산업, 2035 누적(%)</div><canvas id="figLabor" height="300"></canvas></div></div>
 </figure>
-<figcaption style="margin-top:-12px"><span class="cap-no">그림 3·4.</span> (좌) Diebold–Yılmaz <b>순 연결성</b>—양(+)이면 다른 산업으로 충격을 전이하는 발신 산업. (우) 고위·저위 인구 시나리오의 2035년 누적 부가가치 격차로 측정한 <b>노동공급 민감도</b>. 자동차·전자·광업 등 자본·수출 집약 산업이 노동공급 가정에 민감하게 반응한다.</figcaption>
+<figcaption style="margin-top:-12px"><span class="cap-no">그림 4·5.</span> (좌) Diebold–Yılmaz <b>순 연결성</b>—양(+)이면 다른 산업으로 충격을 전이하는 발신 산업. (우) 고위·저위 인구 시나리오의 2035년 누적 부가가치 격차로 측정한 <b>노동공급 민감도</b>. 자동차·전자·광업 등 자본·수출 집약 산업이 노동공급 가정에 민감하게 반응한다.</figcaption>
 
 <h3>4.1 정합성과 검증</h3>
 <p>복원된 월별 잠재치를 다시 분기로 집계하면 입력 분기 부가가치와 일치한다(70개 산업 최대 재구성오차 $\approx 0$). 마지막 8개 분기를 가린 보류표본 검증에서 평활치는 실제 분기 부가가치와 양(+)의 상관을 보여, 월별 지표가 부가가치의 시점 정보를 담고 있음을 확인한다. 자기상관 모수 $\rho$의 평균은 표 상단 지표에 보고된다.</p>
@@ -190,6 +199,19 @@ function lineLatent(){
     plugins:{legend:{position:'bottom',labels:{boxWidth:14}}}}});
 }
 
+function lineDsge(canvasId, key, ytitle){
+  const d=(C.dsge||{}); const q=d.quarters||[];
+  const names={S1:'S1 기준',S2:'S2 제약+위기',S3:'S3 제약완화',S4:'S4 기술도약',S5:'S5 지정학'};
+  const ds=['S1','S2','S3','S4','S5'].map((k,i)=>({label:names[k],
+     data:(d.macro&&d.macro[k]?d.macro[k][key]:[]),borderColor:palette[i%palette.length],
+     borderWidth:1.5,pointRadius:0,tension:.15}));
+  const lbl=q.map(x=>x.endsWith('Q1')?x.slice(0,4):'');
+  new Chart(document.getElementById(canvasId),{type:'line',data:{labels:lbl,datasets:ds},
+   options:{responsive:true,interaction:{mode:'index',intersect:false},
+    scales:{x:{grid:{display:false},ticks:{color:COL.mut,maxTicksLimit:10}},y:{grid:{color:COL.grid},title:{display:true,text:ytitle}}},
+    plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:10}}}}}});
+}
+
 function lineFan(){
   const f=C.scen_fan||{}; const s1=f.S1||{year:[]};
   const labels=s1.year||[];
@@ -230,7 +252,7 @@ function barLabor(){
 }
 
 window.addEventListener('DOMContentLoaded',()=>{
-  try{ kpis(); lineLatent(); lineFan(); barConn(); barLabor(); }catch(e){ console.error(e); }
+  try{ kpis(); lineLatent(); lineDsge('figDsgeY','Y_gap','산출갭(%)'); lineDsge('figDsgeR','policy_rate','정책금리(%)'); lineFan(); barConn(); barLabor(); }catch(e){ console.error(e); }
   setTimeout(ready, 400);
 });
 </script>
