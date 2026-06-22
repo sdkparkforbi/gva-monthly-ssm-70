@@ -49,6 +49,15 @@ def main():
                              point=d["point"].tolist(),
                              p5=d["p5"].tolist(), p95=d["p95"].tolist(),
                              p15=d["p15"].tolist(), p85=d["p85"].tolist())
+    # 4b) 시나리오 전년대비 증가율(YoY) 팬
+    grow = read_sql("select * from result_scenario_growth")
+    scen_growth = {}
+    for scn in ["S1", "S2", "S3", "S4", "S5"]:
+        d = grow[grow.scenario == scn].sort_values("year")
+        scen_growth[scn] = dict(year=[str(y) for y in d["year"].tolist()],
+                                point=d["g_point"].round(2).tolist(),
+                                p5=d["g_p5"].round(2).tolist(),
+                                p95=d["g_p95"].round(2).tolist())
 
     # 5) 산업별 2035 + 노동효과 상하위
     ind = read_sql("select * from result_scenario_industry_2035")
@@ -120,7 +129,7 @@ def main():
                   hold_rmse=round(float(hold["holdout_rmse"].mean()), 3) if len(hold) else None,
                   hold_corr=round(float(hold["holdout_corr"].mean()), 3) if len(hold) else None),
         varx=varx, conn_top=conn_top, conn_bot=conn_bot,
-        scen_fan=scen_fan, lab_top=lab_top, lab_bot=lab_bot,
+        scen_fan=scen_fan, scen_growth=scen_growth, lab_top=lab_top, lab_bot=lab_bot,
         sector_counts=imap["sector"].value_counts().to_dict(),
     )
     js = "window.CHART = " + json.dumps(payload, ensure_ascii=False) + ";"

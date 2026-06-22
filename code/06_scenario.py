@@ -67,6 +67,17 @@ def main():
     yhist = Y.values[-P:]                 # 시드 내생(마지막 P개월 성장률)
     xhist = ex.values[-Q:]               # 시드 외생
 
+    # YoY 기준: 실제 2025년 월별 총계지수(2025.12=100)
+    lv25 = read_sql("select date, ind_id, va_level from latent_monthly_va where date like '2025-%'")
+    piv25 = lv25.pivot(index="date", columns="ind_id", values="va_level").sort_index().reindex(columns=inds)
+    hist25 = ((piv25 / piv25.loc["2025-12-01"] * 100).values * w).sum(axis=1)   # 12개월
+    YEARS = list(range(2026, 2036))
+
+    def annual_yoy(path120):
+        full = np.concatenate([hist25, path120])          # 132개월: 2025.01~2035.12
+        ann = full.reshape(11, 12).mean(axis=1)           # 연평균 2025~2035
+        return (ann[1:] / ann[:-1] - 1) * 100             # YoY 2026~2035
+
     def simulate(scn, draws=0):
         Xf = paths[scn]
         ylag = list(yhist[::-1])         # ylag[0]=t-1
@@ -84,7 +95,7 @@ def main():
             levels[t] = 100 * np.exp(cum / 100.0)
         return levels
 
-    fan_rows = []; ind_rows = []
+    fan_rows = []; ind_rows = []; grow_rows = []
     aggfan = {}
     for scn in SCN:
         pt = simulate(scn, draws=0)
@@ -100,10 +111,21 @@ def main():
                              round(agg_pt[t], 2), round(pct[0, t], 2), round(pct[1, t], 2),
                              round(pct[2, t], 2), round(pct[3, t], 2), round(pct[4, t], 2)))
         aggfan[scn] = dict(median=agg_pt.tolist())
+        # 전년대비 증가율(YoY) 팬: draw별 YoY → 분위수
+        g_pt = annual_yoy(agg_pt)
+        gsims = np.array([annual_yoy(s) for s in sims])
+        gpct = np.percentile(gsims, [5, 50, 95], axis=0)
+        for k, yr in enumerate(YEARS):
+            grow_rows.append((scn, yr, round(float(g_pt[k]), 2),
+                              round(float(gpct[0, k]), 2), round(float(gpct[1, k]), 2),
+                              round(float(gpct[2, k]), 2)))
 
     fan = pd.DataFrame(fan_rows, columns=["scenario", "date", "point", "p5", "p15", "p50", "p85", "p95"])
     ind = pd.DataFrame(ind_rows, columns=["scenario", "ind_id", "cum_growth_2035_pct"])
+    grow = pd.DataFrame(grow_rows, columns=["scenario", "year", "g_point", "g_p5", "g_p50", "g_p95"])
     to_sql(fan, "result_scenario_fan"); to_sql(ind, "result_scenario_industry_2035")
+    to_sql(grow, "result_scenario_growth")
+    grow.to_csv(os.path.join(DATA, "scenario_gdp_growth.csv"), index=False, encoding="utf-8-sig")
     fan.to_csv(os.path.join(DATA, "scenario_gdp_fan.csv"), index=False, encoding="utf-8-sig")
     ind.to_csv(os.path.join(DATA, "scenario_industry_2035.csv"), index=False, encoding="utf-8-sig")
 

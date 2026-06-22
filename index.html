@@ -54,7 +54,7 @@ code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:13.5px;f
 .refs a{color:var(--accent);text-decoration:none;word-break:break-all}
 .kpi{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0}
 .kpi div{flex:1;min-width:120px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
-.kpi .v{font-size:22px;font-weight:700;color:var(--accent)}.kpi .l{font-size:12.5px;color:var(--mut)}
+.kpi .v{font-size:22px;font-weight:700;color:var(--accent)}.kpi .l{font-size:12.5px;color:var(--mut);word-break:keep-all}
 .foot{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);color:var(--mut);font-size:13px}
 .chartt{font-size:12.5px;color:#444;font-weight:600;text-align:center;margin:2px 0 8px}
 @page{margin:18mm 15mm 20mm 15mm}
@@ -172,9 +172,9 @@ code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:13.5px;f
 <figcaption style="margin-top:-12px"><span class="cap-no">그림 2.</span> 거시 블록(<b>DSGE, BOKDPM 포트</b>)의 10년 경로. 기준(S1)은 정상상태(산출갭 0·정책금리 3.5%)로 평탄하고, 제약+위기(S2)는 2026년 산출갭 −1.5%까지 하락 후 금리 인하를 거쳐 2030년경 정상상태로 복귀한다. 지정학(S5)은 유가 공급충격으로 산출갭이 음(−)으로, 기술도약(S4)은 양(+)으로 벌어진다. 경기 성분은 모두 수렴하며 <b>항구적 차이는 노동공급(인구가정)</b>에만 남는다. 이 분기 경로가 월별 VARX의 외생 입력을 구동한다.</figcaption>
 
 <figure>
-<div class="chartbox"><div class="chartt">시나리오별 총 실질부가가치 경로 (2025.12=100)</div>
+<div class="chartbox"><div class="chartt">시나리오별 총 실질부가가치 전년대비 증가율 (%)</div>
 <canvas id="figFan" height="230"></canvas></div>
-<figcaption><span class="cap-no">그림 3.</span> DSGE 외생경로로 구동한 다섯 시나리오의 <b>총 실질부가가치 전망</b>과 S1 기준 90% 신뢰구간(몬테카를로 400회). 2035년 지수(2025.12=100)는 기술도약(S4) 148.3이 가장 높고 제약+위기(S2) 145.0이 가장 낮다. 시나리오 평균 격차는 확률적 불확실성(±15pt) 대비 작아, 일시적 대외충격보다 노동공급의 지속적 차이가 더 항구적인 수준 격차를 만든다. (유가 등 일부 외생의 축약형 산업 전달이 약해 S5의 산업 총계는 거시 산출갭만큼 음으로 벌어지지 않는다 — §5 참조.)</figcaption>
+<figcaption><span class="cap-no">그림 3.</span> DSGE 외생경로로 구동한 다섯 시나리오의 <b>총 실질부가가치 전년대비 증가율</b>(연율, %)과 S1 기준 90% 신뢰구간(몬테카를로 400회). 초기(2026년)에 제약+위기(S2)·지정학(S5)의 증가율이 낮고 기술도약(S4)이 높아, <b>대외충격은 단기 성장률에서 가장 뚜렷하게 갈린다</b>. 시간이 지나며 경기 성분은 수렴하고, 시나리오 간 항구적 차이는 노동공급(생산가능인구)에서 비롯된다. 증가율의 분포(불확실성)는 추세 성분보다 넓다.</figcaption>
 </figure>
 
 <figure class="twocol">
@@ -239,12 +239,12 @@ function ready(){ window.__chartsReady = true; }
 function kpis(){
   const d=C.diag||{}, v=C.varx||{};
   const items=[
-    ['70','산업(KSIC 중분류)'],
-    ['312','개월 (2000.01–2025.12)'],
+    ['70','산업 (62+8 MECE)'],
+    ['312','개월 (2000–2025)'],
     [(v.mean_R2!=null? (v.mean_R2*100).toFixed(0):'–')+'%','VARX 평균 R²'],
-    [(v.total_connectedness!=null? v.total_connectedness.toFixed(0):'–')+'%','총연결성(TCI)'],
-    [(d.rho_mean!=null?d.rho_mean.toFixed(2):'–'),'평균 ρ'],
-    [(v.max_eig!=null?v.max_eig.toFixed(2):'–'),'max|eig| (<1 안정)'],
+    [(v.total_connectedness!=null? v.total_connectedness.toFixed(0):'–')+'%','총연결성 TCI'],
+    ['≈0','분기 정합오차'],
+    [(v.max_eig!=null?v.max_eig.toFixed(2):'–'),'동반행렬 max|eig|'],
   ];
   document.getElementById('kpi').innerHTML = items.map(i=>`<div><div class="v">${i[0]}</div><div class="l">${i[1]}</div></div>`).join('');
 }
@@ -272,20 +272,20 @@ function lineDsge(canvasId, key, ytitle){
 }
 
 function lineFan(){
-  const f=C.scen_fan||{}; const s1=f.S1||{year:[]};
+  const f=C.scen_growth||{}; const s1=f.S1||{year:[]};
   const labels=s1.year||[];
   const names={S1:'S1 기준',S2:'S2 제약+위기',S3:'S3 제약완화',S4:'S4 기술도약',S5:'S5 지정학'};
   const ds=[];
-  // S1 band
   if(s1.p95&&s1.p5){
     ds.push({label:'S1 90% 상',data:s1.p95,borderColor:'rgba(24,95,165,0)',backgroundColor:'rgba(24,95,165,.10)',pointRadius:0,fill:'+1'});
     ds.push({label:'S1 90% 하',data:s1.p5,borderColor:'rgba(24,95,165,0)',backgroundColor:'rgba(24,95,165,.10)',pointRadius:0,fill:false});
   }
-  ['S1','S2','S3','S4','S5'].forEach((k,i)=>{ if(f[k]) ds.push({label:names[k],data:f[k].point,borderColor:palette[i%palette.length],borderWidth:1.8,pointRadius:0,tension:.15}); });
+  ['S1','S2','S3','S4','S5'].forEach((k,i)=>{ if(f[k]) ds.push({label:names[k],data:f[k].point,borderColor:palette[i%palette.length],borderWidth:1.8,pointRadius:2,tension:.15}); });
   new Chart(document.getElementById('figFan'),{type:'line',data:{labels,datasets:ds},
    options:{responsive:true,interaction:{mode:'index',intersect:false},
-    scales:{x:{grid:{display:false},ticks:{color:COL.mut}},y:{grid:{color:COL.grid},title:{display:true,text:'지수 (2025.12=100)'}}},
-    plugins:{legend:{position:'bottom',labels:{boxWidth:14,filter:i=>!i.text.includes('90%')}}}}});
+    scales:{x:{grid:{display:false},ticks:{color:COL.mut}},y:{grid:{color:COL.grid},title:{display:true,text:'전년대비 증가율 (%)'}}},
+    plugins:{legend:{position:'bottom',labels:{boxWidth:14,filter:i=>!i.text.includes('90%')}},
+      tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.parsed.y.toFixed(2)+'%'}}}}});
 }
 
 function barConn(){
