@@ -74,7 +74,7 @@ KOSIS_URL = "https://kosis.kr/openapi/Param/statisticsParameterData.do"
 
 
 def kosis(org, tbl, itmId="ALL", start="200001", end="202612",
-          objL1="ALL", objL2="", objL3="", prdSe="M", retry=3):
+          objL1="ALL", objL2="", objL3="", objL4="", prdSe="M", retry=3):
     """KOSIS 파라미터 데이터 → long DataFrame. 빈 결과/오류는 빈 DF."""
     p = dict(method="getList", apiKey=KEY_KOSIS, format="json", jsonVD="Y",
              prdSe=prdSe, startPrdDe=start, endPrdDe=end,
@@ -83,6 +83,8 @@ def kosis(org, tbl, itmId="ALL", start="200001", end="202612",
         p["objL2"] = objL2
     if objL3:
         p["objL3"] = objL3
+    if objL4:
+        p["objL4"] = objL4
     for k in range(retry):
         try:
             j = requests.get(KOSIS_URL, params=p, timeout=120).json()

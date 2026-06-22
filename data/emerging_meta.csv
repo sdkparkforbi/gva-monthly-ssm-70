@@ -1,7 +1,7 @@
 ﻿em_id,name,host_id,host_name,share_2020_eff,share_2020_assumed
 E_SEMI,반도체,H_ELEC,전자부품·컴퓨터·통신장비,0.5,0.5
 E_BATT,이차전지,H_ELECEQ,전기장비,0.22,0.22
-E_BIO,바이오의약,H_CHEM,화학·의약·고무플라스틱,0.18,0.18
+E_BIO,바이오의약,H_CHEM,화학·의약·고무플라스틱,0.173,0.17276400013714255
 E_RENEW,신재생에너지,H_UTIL,전기·가스·증기,0.08,0.08
 E_AI,인공지능·SW,H_INFOSVC,정보서비스(SW·IT),0.444,0.45
 E_PLAT,디지털플랫폼,H_RETAIL,도소매,0.12,0.12

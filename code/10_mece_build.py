@@ -161,6 +161,17 @@ def main():
     online = fetch_online()
     print("  online:", "ok" if online is not None else "fallback")
 
+    # 횡단면 부가가치 비중(제조·광업: 광업제조업조사 중분류 VA)
+    VA = {}
+    vap = os.path.join(DATA, "va_mfg.csv")
+    if os.path.exists(vap):
+        vm = pd.read_csv(vap)
+        VA = dict(zip(vm["ksic"].astype(str), vm["va"].astype(float)))
+    def va_unit(keys):
+        if keys and all(k in VA for k in keys):
+            return float(sum(VA[k] for k in keys))
+        return None
+
     # structural proxy + parent grouping
     struct = {s[0]: dict(name=s[1], sector=s[2], bok=s[3], src=s[4], keys=s[5], ks=s[6], host=s[7]) for s in STRUCT}
     for sid, s in struct.items():
@@ -176,8 +187,12 @@ def main():
         pq = vapiv[codes].sum(axis=1)
         w = {}
         for u in units:
-            p = struct[u]["prox"]
-            w[u] = np.nanmean(p[MONTHS.year == 2020]) if p is not None else np.nan
+            vu = va_unit(struct[u]["keys"])          # 실제 부가가치(제조·광업) 우선
+            if vu is not None:
+                w[u] = vu
+            else:                                     # 미가용(서비스 등) → 산출(생산지수) 비중 근사
+                p = struct[u]["prox"]
+                w[u] = np.nanmean(p[MONTHS.year == 2020]) if p is not None else np.nan
         if all(np.isnan(list(w.values()))):
             for u in units: w[u] = 1.0
         mean_known = np.nanmean([v for v in w.values() if v == v]) or 1.0
@@ -209,6 +224,10 @@ def main():
     leaves = {}   # leaf_id -> dict(name, sector, bok, role, host, lvl(monthly), rho)
     host_share = {}
     emer = {e[0]: dict(name=e[1], host=e[2], share=e[3], src=e[4], keys=e[5], tv=e[6]) for e in EMERG}
+    # 바이오의약 분할비중을 실제 부가가치로: C21 / (C20+C21+C22)
+    if all(k in VA for k in ["C20", "C21", "C22"]):
+        emer["E_BIO"]["share"] = float(VA["C21"] / (VA["C20"] + VA["C21"] + VA["C22"]))
+        print(f"  E_BIO 분할비중(부가가치): {emer['E_BIO']['share']:.3f}")
     em_by_host = {e["host"]: eid for eid, e in emer.items()}
 
     for sid, s in struct.items():
