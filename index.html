@@ -88,6 +88,29 @@ code{background:var(--code);padding:1px 5px;border-radius:4px;font-size:13.5px;f
 <p>선행연구와의 차별점은 세 가지다. (i) 산업 분해를 36개에서 70개(한국표준산업분류 중분류 기준)로 확장한다. (ii) 분기에서 월로 빈도를 높이되, 단순 보간이 아니라 실질주가가치와 생산지수가 담은 정보로 월별 잠재 부가가치를 식별한다. (iii) 추정 철학과 도구를 달리하여—선행연구가 베이지안 동적요인·BVARX였다면—본 연구는 자체 구현한 혼합주기 칼만필터와 빈도주의(정칙화) VARX를 사용하고, 산재한 CSV 대신 단일 관계형 데이터베이스(SQLite)로 자료를 관리한다.</p>
 
 <h2><span class="no">2</span>방법론</h2>
+<div class="box"><div class="bt">직관 — 어떻게 월별 부가가치가 만들어지나</div>
+<p>진짜 부가가치는 <b>3개월에 한 번, 36개 산업만</b> 공식 발표된다. 우리는 <b>매달, 70개</b>로 원한다. 열쇠는 산업마다 매달 움직이는 단서(프록시)—<b>실질주가(주가÷물가)·생산지수·온라인 거래액</b>—다. 이들은 그 달의 ‘분위기(모양)’를 알려준다. 혼합주기 상태공간 모형은 <b>똑똑한 채움</b>이다: 분기 공식치를 못(앵커)처럼 박고, 그 사이 빈 달을 프록시의 오르내림 모양대로 채우되, <b>“3개월 평균 = 그 분기 공식치”</b>가 되도록 칼만 평활이 최적으로 메운다. 비유하면, 주간 평균 기온만 아는데 매시간 체감(프록시)으로 일별 곡선을 복원하면서 7일 평균은 반드시 공표치와 맞추는 것과 같다. 36개 공식 분기치는 각 산업의 월별 활동비중으로 70개로 쪼개지고(MECE), 신산업 8개는 모산업에서 분리된다.</p>
+<figure style="margin:14px 0 2px">
+<svg viewBox="0 0 680 280" width="100%" role="img" aria-label="월별 부가가치 복원 도식: 분기 앵커 + 월별 프록시 모양 → 3개월 평균이 앵커와 일치하는 월별 곡선">
+  <line x1="40" y1="240" x2="660" y2="240" stroke="#cfccc2" stroke-width="1"/>
+  <g style="font-size:11px;fill:#777">
+    <text x="103" y="258" text-anchor="middle">1분기</text><text x="262" y="258" text-anchor="middle">2분기</text>
+    <text x="421" y="258" text-anchor="middle">3분기</text><text x="580" y="258" text-anchor="middle">4분기</text></g>
+  <g stroke="#2e7d4f" stroke-width="5" stroke-linecap="round">
+    <line x1="50" y1="160" x2="156" y2="160"/><line x1="209" y1="130" x2="315" y2="130"/>
+    <line x1="368" y1="150" x2="474" y2="150"/><line x1="527" y1="100" x2="633" y2="100"/></g>
+  <polyline points="50,185 103,155 156,143 209,158 262,128 315,112 368,118 421,152 474,182 527,128 580,98 633,68" fill="none" stroke="#9a3b2e" stroke-width="1.6" stroke-dasharray="5 4"/>
+  <polyline points="50,180 103,160 156,140 209,150 262,130 315,110 368,120 421,150 474,180 527,130 580,100 633,70" fill="none" stroke="#185FA5" stroke-width="2.2"/>
+  <g fill="#185FA5"><circle cx="50" cy="180" r="3.2"/><circle cx="103" cy="160" r="3.2"/><circle cx="156" cy="140" r="3.2"/><circle cx="209" cy="150" r="3.2"/><circle cx="262" cy="130" r="3.2"/><circle cx="315" cy="110" r="3.2"/><circle cx="368" cy="120" r="3.2"/><circle cx="421" cy="150" r="3.2"/><circle cx="474" cy="180" r="3.2"/><circle cx="527" cy="130" r="3.2"/><circle cx="580" cy="100" r="3.2"/><circle cx="633" cy="70" r="3.2"/></g>
+  <g style="font-size:11.5px">
+    <text x="60" y="150" style="fill:#2e7d4f;font-weight:600">분기 공식치(앵커)</text>
+    <text x="486" y="200" style="fill:#9a3b2e">월별 프록시 모양</text>
+    <text x="300" y="90" style="fill:#185FA5;font-weight:600">복원된 월별 부가가치</text>
+    <text x="103" y="216" text-anchor="middle" style="font-size:10.5px;fill:#777">3개월 평균 = 앵커</text></g>
+</svg>
+<figcaption><span class="cap-no">그림 0.</span> <b>월별 실질부가가치 복원의 직관.</b> 초록 막대=분기 공식치(앵커), 주황 점선=월별 프록시의 모양, 파랑=복원된 월별 부가가치. 파랑 곡선은 프록시의 달별 오르내림을 따르되 각 분기의 3개월 평균이 초록 앵커와 정확히 일치한다(시점집계 제약).</figcaption>
+</figure></div>
+
 <h3>2.1 혼합주기 상태공간 모형</h3>
 <p>산업 $i$의 관측되지 않는 월별 실질부가가치의 로그수준을 $m_{i,t}$로 둔다. 이를 잠재상태로 하고, 회귀항과 정상 자기상관 오차로 분해한다.</p>
 <div class="eq">$$ m_{i,t} = \beta_i' X_{i,t} + u_{i,t}, \qquad u_{i,t} = \rho_i\, u_{i,t-1} + \eta_{i,t}, \quad \eta_{i,t}\sim N(0,\sigma_i^2) $$</div>
