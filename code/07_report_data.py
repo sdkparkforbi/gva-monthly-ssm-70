@@ -26,7 +26,10 @@ def main():
 
     # 2) 진단
     diag = read_sql("select * from latent_diagnostics")
-    hold = read_sql("select * from latent_holdout")
+    try:
+        hold = read_sql("select * from latent_holdout")
+    except Exception:
+        hold = pd.DataFrame(columns=["holdout_rmse", "holdout_corr"])
     varx = read_sql("select * from result_varx_summary").iloc[0].to_dict()
 
     # 3) 연결성 상위/하위

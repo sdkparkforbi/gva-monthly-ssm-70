@@ -187,13 +187,12 @@ def main():
         for u in units:
             structQ[u] = pq * (w[u] / tot)
 
-    # 2) structural units 월별 분해
+    # 2) structural units 월별 분해 (플로 = 3개월 합 제약, 수준 단위)
     structM = {}
     for sid, s in struct.items():
         q = structQ[sid].astype(float)
         if (q.dropna() <= 0).any() or q.dropna().empty:
             q = q.clip(lower=max(q.max() * 1e-4, 1e-6))
-        ylog = np.log(q.values)
         cols = [np.ones(T)]; names = ["const"]
         if s["prox"] is not None:
             cols.append(zscore_log(s["prox"])); names.append("prox")
@@ -202,8 +201,9 @@ def main():
         if len(cols) == 1:
             cols.append(np.linspace(0, 1, T)); names.append("trend")
         X = np.column_stack([pd.Series(c).interpolate(limit_direction="both").fillna(0).values for c in cols])
-        res = disagg(ylog, X)
-        structM[sid] = dict(m=res["m"], lvl=np.exp(res["m"]), rho=res["rho"])
+        res = disagg(q.values, X)                       # 분기 '합' 수준을 월 수준으로 분해
+        lvl = np.clip(res["m"], 1e-9, None)
+        structM[sid] = dict(lvl=lvl, rho=res["rho"])
 
     # 3) host 분할 → emerging + residual (시변/상수 비중)
     leaves = {}   # leaf_id -> dict(name, sector, bok, role, host, lvl(monthly), rho)

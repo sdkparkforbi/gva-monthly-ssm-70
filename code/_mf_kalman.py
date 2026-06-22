@@ -28,28 +28,29 @@ def _build_X(months, indicators, exog):
     return np.column_stack(cols), names
 
 
-def chowlin_kalman(q_loglevel, q_month_idx, X, rho_grid=None):
-    """누적기 상태공간 + 칼만필터/평활로 월별 잠재 로그수준 m_t 추출.
+def chowlin_kalman(q_level, q_month_idx, X, rho_grid=None):
+    """누적기 상태공간 + 칼만필터/평활로 월별 잠재 수준 m_t 추출 (플로 = 합 집계).
 
-    q_loglevel : 분기 로그수준 관측 (len Q)  — 각 분기는 3개월 평균 제약
+    부가가치는 플로이므로 분기치 = 3개월 '합'(평균 아님): Y^Q_τ = Σ_{k∈τ} m_k.
+    q_level    : 분기 수준 관측(분기 합) (len Q)
     q_month_idx: 각 분기의 '마지막 월' 인덱스(0-based, 월배열 기준) (len Q)
     X          : (T x k) 회귀행렬(월)
-    반환: m_hat(T,), beta(k,), rho, loglik, resid_var
+    반환: m_hat(T, 월수준), beta(k,), rho, loglik, resid_var
     """
     T, k = X.shape
     if rho_grid is None:
         rho_grid = np.r_[np.linspace(0.0, 0.95, 20), 0.97, 0.99]
 
-    # 분기 집계행렬 A: (Q x T), 각 분기 마지막월 기준 직전 3개월 평균(1/3)
-    Q = len(q_loglevel)
+    # 분기 집계행렬 A: (Q x T), 각 분기 = 직전 3개월의 '합'(플로, 1.0)
+    Q = len(q_level)
     A = np.zeros((Q, T))
     for i, me in enumerate(q_month_idx):
         for k3 in range(3):
             j = me - k3
             if 0 <= j < T:
-                A[i, j] = 1.0 / 3.0
+                A[i, j] = 1.0
 
-    yq = np.asarray(q_loglevel, float)
+    yq = np.asarray(q_level, float)
     valid = ~np.isnan(yq)
     A = A[valid]; yq = yq[valid]; Q = len(yq)
 
